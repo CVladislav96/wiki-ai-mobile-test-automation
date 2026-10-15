@@ -2,26 +2,22 @@
 
 Android UI automation for the official Wikipedia app: **9 functional tests and 1 visual test**, authored with help from GitHub Copilot and Appium MCP. Saved tests run through WebdriverIO without AI calls or a Copilot subscription.
 
-**Latest verified full run:** 10 passed / 10 specs, 15 October 2026; approximately 9 minutes 2 seconds including runner/session setup. This is evidence from one emulator configuration, not a guarantee of stability across devices. See [run details](docs/latest-run.md).
+**Latest verified full run:** 10 tests passed / 4 specs, 16 October 2026; full runner duration 00:08:13. This is evidence from one emulator configuration, not a guarantee of stability across devices. See [run details](docs/latest-run.md).
 
 ## Stack and coverage
 
 TypeScript · WebdriverIO 10 · Mocha · Appium 3 · UiAutomator2 · Allure · WebdriverIO visual service
 
-| Spec in `test/specs/` | What it checks |
-| --- | --- |
-| `welcome.e2e.ts` | Welcome heading is visible and has the expected text |
-| `search.e2e.ts` | Search for Software testing and open the exact article |
-| `welcome.visual.e2e.ts` | Welcome screen matches the reviewed image baseline |
-| `search-clear.e2e.ts` | Clear a query and verify that the input is showing its hint |
-| `search-no-results.e2e.ts` | An unmatched query displays No results |
-| `search-replace.e2e.ts` | Replace the query and open Computer science |
-| `article-back.e2e.ts` | Return from an article with the query/result restored |
-| `article-save.e2e.ts` | Save an article in the local Portfolio QA collection |
-| `saved-article-open.e2e.ts` | Open an article from that collection |
-| `article-remove.e2e.ts` | Remove the target article from that collection |
+| Spec in `test/specs/` | Tests | Coverage |
+| --- | ---: | --- |
+| `welcome.e2e.ts` | 1 | Welcome heading |
+| `search.e2e.ts` | 5 | Open an article, clear a query, no results, replace a query, return to search |
+| `collections.e2e.ts` | 3 | Save, open, and remove a saved article |
+| `welcome.visual.e2e.ts` | 1 | Reviewed welcome-screen visual baseline |
 
-Each spec has one test and a separate Appium session. Collection tests establish their own prerequisites. Save/open tests clean up membership they add; the dedicated collection itself is retained. They do not require a Wikipedia account. Tests use a fresh app-data launch and will reset Wikipedia data on the selected emulator: use a dedicated test emulator.
+There are **10 independent tests in four feature specs**. WebdriverIO creates the first session for each spec. In the search and collection suites, a shared `beforeEach` helper reloads the session before every subsequent test with the configured `appium:noReset: false`, then completes onboarding. Thus every case starts with fresh Wikipedia app data even when another case has failed. A single test selected for execution also uses its fresh initial session.
+
+Collection tests prepare their own prerequisites. `runWithCleanup` removes membership added by save/open cases and reports both failures if the test and cleanup fail. The dedicated collection itself is retained within that test's session; the next fresh-data session resets local app data. No Wikipedia account is required. Use a dedicated test emulator.
 
 ## Local setup (Windows / PowerShell)
 
@@ -63,12 +59,12 @@ Keep the emulator open. Stop any manually started Appium server on port 4723: th
 ```powershell
 npm run wdio
 # One spec:
-npm run wdio -- --spec ./test/specs/search-clear.e2e.ts
+npm run wdio -- --spec ./test/specs/search.e2e.ts
 # Several specs: separate arguments, not comma-separated paths.
-npm run wdio -- --spec ./test/specs/article-back.e2e.ts ./test/specs/search-replace.e2e.ts
+npm run wdio -- --spec ./test/specs/search.e2e.ts ./test/specs/collections.e2e.ts
 ```
 
-Most tests have a 60-second Mocha deadline. The three collection tests have individual 120-second deadlines including setup and cleanup. Element waits remain bounded independently.
+Test bodies use a 60-second Mocha deadline, with individual 120-second deadlines for the three collection cases and their cleanup. The shared beforeEach hook has its own 120-second deadline for session renewal and onboarding. Element waits remain bounded independently. Grouping reduces file fragmentation; it does not remove the session-reset cost required for isolation.
 
 ## Allure reports
 
@@ -79,7 +75,7 @@ npx allure generate ./allure-results --clean -o ./allure-report
 npx allure open ./allure-report
 ```
 
-`allure-results` accumulates previous attempts; `--clean` replaces the generated report, not the input results. For an isolated report, use an empty results directory before the run or generate from a deliberately selected run snapshot. The prepared local report uses a copy of the latest ten results in `.tmp/allure-latest`; older raw results remain intact. The [committed run summary](docs/latest-run.md) records that snapshot without bundling generated HTML.
+`allure-results` accumulates previous attempts; `--clean` replaces the generated report, not the input results. For an isolated report, use an empty results directory before the run or generate from a deliberately selected run snapshot. The prepared local report uses a copy of the latest ten results in `.tmp/allure-grouped-latest`; older raw results remain intact. The [committed run summary](docs/latest-run.md) records that snapshot without bundling generated HTML.
 
 ## AI-assisted development
 

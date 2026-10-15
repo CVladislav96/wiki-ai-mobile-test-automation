@@ -8,7 +8,7 @@ export const config: WebdriverIO.Config = {
   port: 4723,
   path: "/",
 
-  specs: ["./test/specs/**/*.ts"],
+  specs: ["./test/specs/**/*.e2e.ts"],
   exclude: [],
 
   maxInstances: 1,

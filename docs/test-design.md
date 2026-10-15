@@ -19,21 +19,21 @@ This document defines one suite of **nine functional tests and one visual test**
 | WIKI-01 | `welcome.e2e.ts` | Launch with fresh app data | Welcome heading is visible and reads All the world's knowledge |
 | WIKI-02 | `search.e2e.ts` | Complete onboarding; search Software testing; open the exact result | Article heading is visible and has the exact expected text |
 | WIKI-03 | `welcome.visual.e2e.ts` | Wait for welcome heading and Forward; compare the screen with its reviewed baseline | Zero mismatch under the configured comparison rules |
-| WIKI-04 | `search-clear.e2e.ts` | Complete onboarding; enter Software testing; wait for a result; press Clear query | Input shows Search Wikipedia and its source node has showing-hint=true |
-| WIKI-05 | `search-no-results.e2e.ts` | Complete onboarding; submit the unmatched query | Input contains that query; No results is displayed inside the results container |
-| WIKI-06 | `search-replace.e2e.ts` | Search Software testing; clear it; enter Computer science; open the new exact result | New query, result, and article heading match Computer science |
-| WIKI-07 | `article-back.e2e.ts` | Open Software testing from search; use Navigate up | Original query and exact result are restored |
-| WIKI-08 | `article-save.e2e.ts` | Open Software testing; establish its membership in Portfolio QA; open the collection | Target article row and its scoped title are displayed in the collection |
-| WIKI-09 | `saved-article-open.e2e.ts` | Independently establish saved membership; open the article from Portfolio QA | Correct article heading is visible with exact text |
-| WIKI-10 | `article-remove.e2e.ts` | Independently establish membership; verify the article; uncheck Portfolio QA in the Save selector | Target article is absent when collection contents/empty state have loaded |
+| WIKI-04 | `search.e2e.ts` | Complete onboarding; enter Software testing; wait for a result; press Clear query | Input shows Search Wikipedia and its source node has showing-hint=true |
+| WIKI-05 | `search.e2e.ts` | Complete onboarding; submit the unmatched query | Input contains that query; No results is displayed inside the results container |
+| WIKI-06 | `search.e2e.ts` | Search Software testing; clear it; enter Computer science; open the new exact result | New query, result, and article heading match Computer science |
+| WIKI-07 | `search.e2e.ts` | Open Software testing from search; use Navigate up | Original query and exact result are restored |
+| WIKI-08 | `collections.e2e.ts` | Open Software testing; establish its membership in Portfolio QA; open the collection | Target article row and its scoped title are displayed in the collection |
+| WIKI-09 | `collections.e2e.ts` | Independently establish saved membership; open the article from Portfolio QA | Correct article heading is visible with exact text |
+| WIKI-10 | `collections.e2e.ts` | Independently establish membership; verify the article; uncheck Portfolio QA in the Save selector | Target article is absent when collection contents/empty state have loaded |
 
-Implement and review the catalogue as a coherent batch. Keep one independent test per spec. Shared code belongs in Page Objects; one spec must not rely on another spec's output.
+Implement and review the catalogue as a coherent batch. Keep one independent it block per scenario, grouped into four feature specs: welcome (1), search (5), collections (3), and visual welcome (1). Shared code belongs in Page Objects; no test may rely on another test's output.
 
 ## Shared navigation and state
 
 ### Fresh launch and onboarding
 
-WebdriverIO supplies `appium:noReset: false` and creates a session per spec. On the verified emulator this presents onboarding for each functional test. Use a dedicated test emulator because this resets Wikipedia app data. An MCP exploration session may open an already-initialized app; a new MCP session alone is not proof that data was reset.
+WebdriverIO supplies `appium:noReset: false` and creates the first session for each spec. `registerFreshAppSetup()` installs a beforeEach hook in the search and collection suites. It uses the fresh initial session for the first selected case, calls `browser.reloadSession()` before each subsequent case, and completes onboarding before each case. The flag advances before onboarding, so a failed test does not cause the next case to reuse its state. Use a dedicated test emulator because this resets Wikipedia app data. An MCP exploration session may open an already-initialized app; a new MCP session alone is not proof that data was reset.
 
 The observed onboarding sequence is:
 
@@ -68,7 +68,7 @@ Navigate through Saved → Collections → Portfolio QA. Dismiss the Share this 
 
 For removal, open the article's collection selector and uncheck only Portfolio QA. Wait for collection contents or the empty state before checking target absence. Visible row count does not establish the collection's total size; WIKI-10 does not infer that a collection must be empty from that count.
 
-Save/open tests record whether they added membership and clean it up through `runWithCleanup`. The helper reports both failures if the test and cleanup fail. The collection itself is retained. Removal is the action under test for WIKI-10.
+Save/open tests record whether they added membership and clean it up through `runWithCleanup`. The helper reports both failures if the test and cleanup fail. The collection itself is retained during the test's session; a subsequent fresh-data session resets the app state. Removal is the action under test for WIKI-10.
 
 During exploration, save/remove confirmation messages were observed, but the automated suite verifies persistent collection UI state instead of relying solely on a transient snackbar. View collection became unavailable during exploration; the suite uses the stable Saved → Collections route.
 
@@ -133,9 +133,9 @@ End any MCP session and stop the manually started Appium server before running t
 npm run wdio
 ```
 
-Accept the batch when all ten specs pass, cleanup completes, and the approved visual baseline remains unchanged. Collection cases have individual 120-second Mocha deadlines including setup and cleanup; other cases use 60 seconds. Element waits are separately bounded and do not use fixed pauses.
+Accept the batch when all ten tests in four specs pass, cleanup completes, and the approved visual baseline remains unchanged. Collection test bodies and cleanup have individual 120-second Mocha deadlines; other test bodies use 60 seconds. The shared beforeEach setup has a separate 120-second deadline. Element waits are separately bounded and do not use fixed pauses.
 
-Inspect per-test evidence in Allure before changing code after a failure. Keep raw results for diagnosis. The latest verified full batch was **10 passed / 10 specs**; see [run details](latest-run.md). That one run does not establish long-term reliability or coverage on other devices.
+Inspect per-test evidence in Allure before changing code after a failure. Keep raw results for diagnosis. The latest verified full batch was **10 tests passed in four specs**; see [run details](latest-run.md). That one run does not establish long-term reliability or coverage on other devices.
 
 ## Maintenance boundaries
 

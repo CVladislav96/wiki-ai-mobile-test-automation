@@ -8,7 +8,7 @@ GitHub Copilot acts as a development assistant. `@gavrix/appium-mcp` exposes App
 
 1. Define the complete ten-case coverage matrix, test data, assertions, and independence rules in the suite design.
 2. Inspect the UI with MCP across onboarding, search, articles, and collections. Record verified locators, conditional dialogs, and state transitions in the shared design.
-3. Implement the ten specs as a coherent batch with shared WelcomePage, SearchPage, ArticlePage, CollectionsPage, and cleanup helpers.
+3. Implement ten independent tests as a coherent batch in four feature specs: welcome (1), search (5), collections (3), and visual welcome (1). Reuse WelcomePage, SearchPage, ArticlePage, CollectionsPage, and setup/cleanup helpers.
 4. Review the whole batch for meaningful assertions, safe collection setup, bounded waits, and absence of invented selectors.
 5. Review the welcome-screen baseline separately. Missing/unreviewed images must not silently make a comparison pass.
 6. End MCP sessions, stop manual Appium, and run the full suite with `npm run wdio`.
@@ -40,10 +40,14 @@ Do not modify test code during exploration.
 ```text
 Read AGENTS.md, docs/test-design.md, the configuration, and existing code.
 Implement the complete ten-case catalogue as a coherent TypeScript,
-WebdriverIO, Mocha suite with one independent test per spec.
+WebdriverIO, Mocha suite with one independent it block per scenario.
+Group them into welcome.e2e.ts (1), search.e2e.ts (5),
+collections.e2e.ts (3), and welcome.visual.e2e.ts (1).
 
 Reuse shared Page Objects. Establish each collection test's prerequisites
-within that test and clean up membership it adds. Preserve both the primary
+within that test and clean up membership it adds. Register beforeEach setup
+that uses the fresh first session and reloads the session before subsequent
+cases, then completes onboarding. Preserve both the primary
 failure and any cleanup failure. Do not rely on test execution order.
 
 Use the verified selectors and native hierarchy. Use condition-based waits,
@@ -79,8 +83,8 @@ selected run snapshot, as described in [README](../README.md#allure-reports).
 - Native inputs use text checks because the value-property endpoint failed.
 - The hint-state check uses source-backed XPath because direct attribute access failed.
 - Collection navigation uses Saved → Collections, avoiding the short-lived View collection snackbar.
-- Collection cases receive individual 120-second deadlines for their longer setup/action/cleanup flows; element waits remain bounded.
+- Collection test bodies and cleanup receive individual 120-second deadlines. The shared beforeEach setup has a separate 120-second deadline; element waits remain bounded.
 
-The latest verified combined run passed all ten specs on one emulator.
+The latest grouped combined run passed all ten tests in four specs on one emulator.
 See [run details](latest-run.md) for evidence and durations. Dependency audit
 issues and other coverage limitations remain documented.

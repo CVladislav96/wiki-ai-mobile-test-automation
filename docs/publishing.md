@@ -1,6 +1,6 @@
 # GitHub publication notes
 
-Suggested repository name: `wiki-ai-mobile-tests`.
+Suggested repository name: `wiki-ai-mobile-test-automation`.
 
 Suggested description: Android UI tests for Wikipedia with TypeScript, WebdriverIO, Appium, Allure, visual checks, and an AI-assisted MCP workflow.
 
@@ -17,7 +17,7 @@ Before pushing, inspect `git status`, `git diff --cached --stat`, and `git diff 
 Create an empty GitHub repository under your chosen account, without generating another README or .gitignore. Replace YOUR_USERNAME with that account name:
 
 ```powershell
-git remote add origin https://github.com/YOUR_USERNAME/wiki-ai-mobile-tests.git
+git remote add origin https://github.com/YOUR_USERNAME/wiki-ai-mobile-test-automation.git
 git push -u origin main
 ```
 
