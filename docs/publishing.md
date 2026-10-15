@@ -8,7 +8,7 @@ Suggested topics: `appium`, `webdriverio`, `typescript`, `android-testing`, `tes
 
 ## Content to publish
 
-Include source/tests, the approved PNG baseline, configuration, package files/lockfile, MCP patch, exploration notes, and README. Exclude the APK, node_modules, generated reports/results, session caches, local environment files, and logs.
+Include source/tests, the approved PNG baseline, configuration, package files/lockfile, MCP patch, the [unified ten-test design](test-design.md), the [AI batch workflow](ai-workflow.md), and README. Exclude the APK, node_modules, generated reports/results, session caches, local environment files, and logs.
 
 Before pushing, inspect `git status`, `git diff --cached --stat`, and `git diff --cached --check`. The local Git identity comes from the user's existing Git configuration. Repository visibility and GitHub ownership must be selected by the owner.
 

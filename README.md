@@ -83,7 +83,7 @@ npx allure open ./allure-report
 
 ## AI-assisted development
 
-AI inspected real screens through MCP, recorded locators in [exploration notes](docs/), and helped author Page Objects and specs. Code was reviewed, executed, and corrected based on failures. See [workflow and prompt examples](docs/ai-workflow.md).
+The project uses a [single design for all ten tests](docs/test-design.md): coverage planning → MCP UI exploration → shared Page Objects → batch implementation → full-suite execution and reporting. AI helped inspect real screens and author code, which was reviewed and corrected using execution evidence. See the [suite-level workflow and batch prompts](docs/ai-workflow.md).
 
 For exploration, start Appium separately with `npx appium --address 127.0.0.1 --port 4723`, then start the server in [.vscode/mcp.json](.vscode/mcp.json) and enable its tools in Copilot Agent. The MCP configuration uses the local pinned package and inherits `ANDROID_HOME`. End the MCP session and stop the manual Appium server before normal tests.
 

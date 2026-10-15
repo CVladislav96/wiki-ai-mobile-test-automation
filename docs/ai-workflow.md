@@ -1,45 +1,86 @@
-# AI-assisted testing workflow
+# AI-assisted development of the ten-test suite
 
-GitHub Copilot was used as a development assistant; `@gavrix/appium-mcp` exposed Appium tools for real device inspection. Normal tests execute without AI.
+Use one [suite design](test-design.md) for the complete catalogue of nine functional tests and one visual test. The workflow below presents planning, exploration, implementation, review, and execution at suite level. The prompts are reusable examples, not an exported conversation or a claim that one model response produced the finished project.
 
-## Process
+GitHub Copilot acts as a development assistant. `@gavrix/appium-mcp` exposes Appium tools for real device inspection. The saved tests execute through WebdriverIO without AI calls.
 
-1. Start a local Appium server and connect Copilot to MCP.
-2. Inspect the live page source and exercise the proposed flow.
-3. Record verified locator strategies, transitions, outcomes, and blockers in exploration documents.
-4. Generate independent TypeScript tests with shared Page Objects.
-5. Review assertions, waits, reset behavior, and cleanup.
-6. End MCP sessions, stop manual Appium, and run saved specs through WebdriverIO.
-7. Diagnose failures from logs/Allure; keep only changes supported by evidence.
+## Workflow
 
-## Example exploration request
+1. Define the complete ten-case coverage matrix, test data, assertions, and independence rules in the suite design.
+2. Inspect the UI with MCP across onboarding, search, articles, and collections. Record verified locators, conditional dialogs, and state transitions in the shared design.
+3. Implement the ten specs as a coherent batch with shared WelcomePage, SearchPage, ArticlePage, CollectionsPage, and cleanup helpers.
+4. Review the whole batch for meaningful assertions, safe collection setup, bounded waits, and absence of invented selectors.
+5. Review the welcome-screen baseline separately. Missing/unreviewed images must not silently make a comparison pass.
+6. End MCP sessions, stop manual Appium, and run the full suite with `npm run wdio`.
+7. Diagnose failures from actual logs/Allure, correct the affected code, and rerun the necessary cases before final full-suite acceptance.
+8. Generate the Allure report and record verified results and remaining limitations.
 
-```text
-Use appium-mcp to inspect Wikipedia search. Enter a query,
-identify the clear-query control from the actual page source,
-clear the query, and document the observed input and result state.
-Do not invent selectors or change test code. Always end the session.
-```
+This is batch authoring and validation. With one emulator and `maxInstances: 1`, test execution is sequential.
 
-## Example authoring request
+## Suite exploration prompt
 
 ```text
-Read the verified exploration notes and existing Page Objects.
-Create an independent TypeScript/Mocha test with condition-based
-waits and meaningful assertions. Reuse verified locators.
-Do not use fixed pauses, invent UI behavior, or claim an unrun test passed.
-Show the code for review before running it.
+Read AGENTS.md and docs/test-design.md. Use appium-mcp to verify
+the UI flows needed for the entire ten-test suite:
+- Welcome content and visual-screen readiness.
+- Exact article search, query clearing, no results, query replacement,
+  and return from an article to search.
+- Saving, opening, and removing an article in Portfolio QA.
+
+Inspect source before interacting with each new screen. Record actual
+selectors, input/hint behavior, conditional prompts, outcomes, and blockers
+in the shared design. Do not assume a new MCP session resets app data.
+Do not invent selectors, sign in, or change unrelated saved content.
+Report unverified flows explicitly. Always end sessions you create.
+Do not modify test code during exploration.
 ```
 
-These are condensed workflow examples, not an exported chat transcript.
+## Batch implementation prompt
 
-## Corrections made from observed failures
+```text
+Read AGENTS.md, docs/test-design.md, the configuration, and existing code.
+Implement the complete ten-case catalogue as a coherent TypeScript,
+WebdriverIO, Mocha suite with one independent test per spec.
 
-- An empty Zod schema prevented registration of `press_home_button`; the one-line fix is persisted with patch-package.
-- APK auto-detection produced an ambiguous launch intent; the configuration now specifies the resolved `.DefaultIcon` component.
-- A native-input `toHaveValue` check called an unsupported property endpoint; the verified text is checked instead.
-- Direct `getAttribute("showing-hint")` failed; a source-backed XPath scopes that condition to the search input.
-- The transient View collection snackbar was replaced with the observed Saved → Collections route.
-- Collection flows exceeded 60 seconds, including cleanup. Their individual deadlines are 120 seconds; UI waits were not replaced with sleeps.
+Reuse shared Page Objects. Establish each collection test's prerequisites
+within that test and clean up membership it adds. Preserve both the primary
+failure and any cleanup failure. Do not rely on test execution order.
 
-Generated code was reviewed and exercised. The three initial cases were expanded to ten. The dependency audit remains unresolved and is not presented as fixed.
+Use the verified selectors and native hierarchy. Use condition-based waits,
+native input text checks, and the source-backed XPath for showing-hint.
+Do not invent controls, use fixed pauses, or hide failures with retries.
+Keep visual baseline auto-creation disabled; request image review separately.
+
+Show the complete implementation and explain independence and assertions.
+Do not claim unexecuted tests passed. Do not publish or install packages.
+```
+
+## Whole-suite review and execution
+
+Check that all ten planned cases exist, the collection title is scoped to
+the target row, optional prompts are handled, and absence assertions are
+made only after the destination view loads. A visible row count is not a
+total collection count. Stop manual Appium before the runner starts its own.
+
+```powershell
+npm run wdio
+npm run report:generate
+npm run report:open
+```
+
+The report command reads the accumulated results folder. For a report of
+one batch, use a fresh results folder before execution or an explicitly
+selected run snapshot, as described in [README](../README.md#allure-reports).
+
+## Implementation decisions supported by evidence
+
+- The committed patch-package fix uses an empty parameter object for press_home_button registration.
+- The launcher explicitly uses the resolved org.wikipedia/.DefaultIcon component.
+- Native inputs use text checks because the value-property endpoint failed.
+- The hint-state check uses source-backed XPath because direct attribute access failed.
+- Collection navigation uses Saved → Collections, avoiding the short-lived View collection snackbar.
+- Collection cases receive individual 120-second deadlines for their longer setup/action/cleanup flows; element waits remain bounded.
+
+The latest verified combined run passed all ten specs on one emulator.
+See [run details](latest-run.md) for evidence and durations. Dependency audit
+issues and other coverage limitations remain documented.
